@@ -1,12 +1,14 @@
-import { Account, COLORS, ICONS } from '@/constants/accounts';
+import { Account, COLORS, ICONS, THEME } from '@/constants/accounts';
 import { MaterialIcons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
+    Keyboard,
     Modal,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
+    TouchableWithoutFeedback,
     View,
 } from 'react-native';
 
@@ -52,80 +54,82 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
             transparent={true}
             onRequestClose={onClose}
         >
-            <View style={styles.modalOverlay}>
-                <View style={styles.modalContent}>
-                    <Text style={styles.modalTitle}>Create Account</Text>
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Create Account</Text>
 
-                    <Text style={styles.label}>Account Name</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="e.g. Savings, Salary..."
-                        value={accountName}
-                        onChangeText={setAccountName}
-                        placeholderTextColor="#64748b"
-                    />
+                        <Text style={styles.label}>Account Name</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="e.g. Savings, Salary..."
+                            value={accountName}
+                            onChangeText={setAccountName}
+                            placeholderTextColor={THEME.textSecondary}
+                        />
 
-                    <Text style={styles.label}>Initial Balance ($)</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="0.00"
-                        value={initialBalance}
-                        onChangeText={setInitialBalance}
-                        keyboardType="decimal-pad"
-                        placeholderTextColor="#64748b"
-                    />
+                        <Text style={styles.label}>Initial Balance ($)</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="0.00"
+                            value={initialBalance}
+                            onChangeText={setInitialBalance}
+                            keyboardType="decimal-pad"
+                            placeholderTextColor={THEME.textSecondary}
+                        />
 
-                    <Text style={styles.label}>Select Icon</Text>
-                    <View style={styles.grid}>
-                        {ICONS.map((icon) => (
-                            <TouchableOpacity
-                                key={icon}
-                                style={[
-                                    styles.gridItem,
-                                    selectedIcon === icon && styles.selectedGridItem,
-                                ]}
-                                onPress={() => setSelectedIcon(icon)}
-                            >
-                                <MaterialIcons
-                                    name={icon as any}
-                                    size={24}
-                                    color={selectedIcon === icon ? '#2563eb' : '#64748b'}
+                        <Text style={styles.label}>Select Icon</Text>
+                        <View style={styles.grid}>
+                            {ICONS.map((icon) => (
+                                <TouchableOpacity
+                                    key={icon}
+                                    style={[
+                                        styles.gridItem,
+                                        selectedIcon === icon && styles.selectedGridItem,
+                                    ]}
+                                    onPress={() => setSelectedIcon(icon)}
+                                >
+                                    <MaterialIcons
+                                        name={icon as any}
+                                        size={24}
+                                        color={selectedIcon === icon ? THEME.accent : THEME.textSecondary}
+                                    />
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+
+                        <Text style={styles.label}>Select Color</Text>
+                        <View style={styles.grid}>
+                            {COLORS.map((color) => (
+                                <TouchableOpacity
+                                    key={color}
+                                    style={[
+                                        styles.colorItem,
+                                        { backgroundColor: color },
+                                        selectedColor === color && styles.selectedColorItem,
+                                    ]}
+                                    onPress={() => setSelectedColor(color)}
                                 />
-                            </TouchableOpacity>
-                        ))}
-                    </View>
+                            ))}
+                        </View>
 
-                    <Text style={styles.label}>Select Color</Text>
-                    <View style={styles.grid}>
-                        {COLORS.map((color) => (
+                        <View style={styles.modalButtons}>
                             <TouchableOpacity
-                                key={color}
-                                style={[
-                                    styles.colorItem,
-                                    { backgroundColor: color },
-                                    selectedColor === color && styles.selectedColorItem,
-                                ]}
-                                onPress={() => setSelectedColor(color)}
-                            />
-                        ))}
-                    </View>
-
-                    <View style={styles.modalButtons}>
-                        <TouchableOpacity
-                            style={[styles.modalButton, styles.cancelButton]}
-                            onPress={onClose}
-                        >
-                            <Text style={styles.cancelButtonText}>Cancel</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[styles.modalButton, styles.submitButton]}
-                            onPress={handleAdd}
-                        >
-                            <Text style={styles.submitButtonText}>Create</Text>
-                        </TouchableOpacity>
+                                style={[styles.modalButton, styles.cancelButton]}
+                                onPress={onClose}
+                            >
+                                <Text style={styles.cancelButtonText}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.submitButton]}
+                                onPress={handleAdd}
+                            >
+                                <Text style={styles.submitButtonText}>Create Account</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 </View>
-            </View>
+            </TouchableWithoutFeedback>
         </Modal>
     );
 };
@@ -133,35 +137,40 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
 const styles = StyleSheet.create({
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        backgroundColor: 'rgba(0,0,0,0.6)',
         justifyContent: 'flex-end',
     },
     modalContent: {
-        backgroundColor: '#fff',
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
+        backgroundColor: THEME.cardBg,
+        borderTopLeftRadius: 30,
+        borderTopRightRadius: 30,
         padding: 24,
         minHeight: '60%',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.05)',
     },
     modalTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
+        fontSize: 22,
+        fontWeight: '800',
         marginBottom: 20,
-        color: '#0f172a',
+        color: THEME.text,
+        textAlign: 'center',
     },
     label: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#64748b',
+        color: THEME.textSecondary,
         marginBottom: 8,
         marginTop: 16,
     },
     input: {
-        backgroundColor: '#f1f5f9',
-        padding: 12,
-        borderRadius: 12,
+        backgroundColor: THEME.background,
+        padding: 15,
+        borderRadius: 15,
         fontSize: 16,
-        color: '#0f172a',
+        color: THEME.text,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.05)',
     },
     grid: {
         flexDirection: 'row',
@@ -170,18 +179,18 @@ const styles = StyleSheet.create({
         marginTop: 8,
     },
     gridItem: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: '#f1f5f9',
+        width: 48,
+        height: 48,
+        borderRadius: 12,
+        backgroundColor: THEME.background,
         alignItems: 'center',
         justifyContent: 'center',
-        borderWidth: 2,
-        borderColor: 'transparent',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.05)',
     },
     selectedGridItem: {
-        borderColor: '#2563eb',
-        backgroundColor: '#eff6ff',
+        borderColor: THEME.accent,
+        backgroundColor: 'rgba(255, 180, 113, 0.1)',
     },
     colorItem: {
         width: 36,
@@ -191,7 +200,7 @@ const styles = StyleSheet.create({
         borderColor: 'transparent',
     },
     selectedColorItem: {
-        borderColor: '#0f172a',
+        borderColor: THEME.text,
     },
     modalButtons: {
         flexDirection: 'row',
@@ -201,22 +210,22 @@ const styles = StyleSheet.create({
     },
     modalButton: {
         flex: 1,
-        paddingVertical: 14,
-        borderRadius: 12,
+        paddingVertical: 16,
+        borderRadius: 15,
         alignItems: 'center',
     },
     cancelButton: {
-        backgroundColor: '#f1f5f9',
+        backgroundColor: 'rgba(255,255,255,0.05)',
     },
     submitButton: {
-        backgroundColor: '#2563eb',
+        backgroundColor: THEME.accent,
     },
     cancelButtonText: {
-        color: '#64748b',
-        fontWeight: '600',
+        color: THEME.textSecondary,
+        fontWeight: '700',
     },
     submitButtonText: {
-        color: '#fff',
-        fontWeight: '600',
+        color: THEME.background,
+        fontWeight: '700',
     },
 });
