@@ -10,11 +10,13 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   FlatList,
   Image,
+  Keyboard,
   SafeAreaView,
   StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 
@@ -70,113 +72,118 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
 
-      <FlatList
-        data={transactions}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        ListHeaderComponent={
-          <>
-            {/* Header */}
-            <View style={styles.header}>
-              <View>
-                <Text style={styles.brandTitle}>Amanah</Text>
-                <Text style={styles.brandSubtitle}>Manage your wealth</Text>
-              </View>
-              <TouchableOpacity style={styles.avatarBtn}>
-                <Image
-                  source={{ uri: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix' }}
-                  style={styles.avatar}
-                />
-              </TouchableOpacity>
-            </View>
-
-            {/* Balance Card */}
-            <BalanceCard balance={totalBalance} />
-
-            {/* Weekly Summary */}
-            <View style={styles.summarySection}>
-              <Text style={styles.sectionTitle}>Monthly Summary</Text>
-              <View style={styles.summaryCard}>
-                <View style={styles.summaryItem}>
-                  <Text style={styles.summaryLabel}>Spent</Text>
-                  <Text style={[styles.summaryValue, { color: THEME.negative }]}>
-                    -${monthlySummary.spent.toLocaleString()}
-                  </Text>
-                </View>
-                <View style={styles.summaryDivider} />
-                <View style={styles.summaryItem}>
-                  <Text style={styles.summaryLabel}>Earned</Text>
-                  <Text style={[styles.summaryValue, { color: THEME.positive }]}>
-                    +${monthlySummary.earned.toLocaleString()}
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Accounts Horizontal List */}
-            <View style={styles.accountsSection}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>My Accounts</Text>
-                <TouchableOpacity onPress={() => setAccountModalVisible(true)}>
-                  <MaterialIcons name="add-circle-outline" size={24} color={THEME.accent} />
-                </TouchableOpacity>
-              </View>
-              <FlatList
-                horizontal
-                data={accounts}
-                keyExtractor={(item) => item.id}
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.accountsList}
-                renderItem={({ item }) => <AccountCard item={item} />}
-                ListEmptyComponent={
-                  <TouchableOpacity style={styles.emptyAccount} onPress={() => setAccountModalVisible(true)}>
-                    <Text style={styles.emptyAccountText}>+ Add Account</Text>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={{ flex: 1 }}>
+          <FlatList
+            data={transactions}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            ListHeaderComponent={
+              <>
+                {/* Header */}
+                <View style={styles.header}>
+                  <View>
+                    <Text style={styles.brandTitle}>Amanah</Text>
+                    <Text style={styles.brandSubtitle}>Manage your wealth</Text>
+                  </View>
+                  <TouchableOpacity style={styles.avatarBtn}>
+                    <Image
+                      source={{ uri: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix' }}
+                      style={styles.avatar}
+                    />
                   </TouchableOpacity>
-                }
-              />
-            </View>
+                </View>
 
-            {/* Transactions Header */}
-            <View style={styles.transactionSectionHeader}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Recent Transactions</Text>
-                <TouchableOpacity style={styles.filterBtn}>
-                  <Text style={styles.filterText}>All</Text>
-                  <MaterialIcons name="keyboard-arrow-down" size={20} color={THEME.textSecondary} />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </>
-        }
-        renderItem={({ item }) => <TransactionItem transaction={item} />}
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>No transactions yet.</Text>
-        }
-      />
+                {/* Balance Card */}
+                <BalanceCard balance={totalBalance} />
 
-      {/* Floating Plus Button */}
-      <View style={styles.fabContainer}>
-        <TouchableOpacity
-          style={styles.fab}
-          onPress={() => setTransactionModalVisible(true)}
-        >
-          <MaterialIcons name="add" size={32} color={THEME.background} />
-        </TouchableOpacity>
-      </View>
+                {/* Weekly Summary */}
+                <View style={styles.summarySection}>
+                  <Text style={styles.sectionTitle}>Monthly Summary</Text>
+                  <View style={styles.summaryCard}>
+                    <View style={styles.summaryItem}>
+                      <Text style={styles.summaryLabel}>Spent</Text>
+                      <Text style={[styles.summaryValue, { color: THEME.negative }]}>
+                        -${monthlySummary.spent.toLocaleString()}
+                      </Text>
+                    </View>
+                    <View style={styles.summaryDivider} />
+                    <View style={styles.summaryItem}>
+                      <Text style={styles.summaryLabel}>Earned</Text>
+                      <Text style={[styles.summaryValue, { color: THEME.positive }]}>
+                        +${monthlySummary.earned.toLocaleString()}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
 
-      <AddAccountModal
-        visible={isAccountModalVisible}
-        onClose={() => setAccountModalVisible(false)}
-        onAdd={handleAddAccount}
-      />
+                {/* Accounts Horizontal List */}
+                <View style={styles.accountsSection}>
+                  <View style={styles.sectionHeader}>
+                    <Text style={styles.sectionTitle}>My Accounts</Text>
+                    <TouchableOpacity onPress={() => setAccountModalVisible(true)}>
+                      <MaterialIcons name="add-circle-outline" size={24} color={THEME.accent} />
+                    </TouchableOpacity>
+                  </View>
+                  <FlatList
+                    horizontal
+                    data={accounts}
+                    keyExtractor={(item) => item.id}
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.accountsList}
+                    renderItem={({ item }) => <AccountCard item={item} />}
+                    ListEmptyComponent={
+                      <TouchableOpacity style={styles.emptyAccount} onPress={() => setAccountModalVisible(true)}>
+                        <Text style={styles.emptyAccountText}>+ Add Account</Text>
+                      </TouchableOpacity>
+                    }
+                  />
+                </View>
 
-      <AddTransactionModal
-        visible={isTransactionModalVisible}
-        onClose={() => setTransactionModalVisible(false)}
-        onAdd={handleAddTransaction}
-        accounts={accounts}
-      />
+                {/* Transactions Header */}
+                <View style={styles.transactionSectionHeader}>
+                  <View style={styles.sectionHeader}>
+                    <Text style={styles.sectionTitle}>Recent Transactions</Text>
+                    <TouchableOpacity style={styles.filterBtn}>
+                      <Text style={styles.filterText}>All</Text>
+                      <MaterialIcons name="keyboard-arrow-down" size={20} color={THEME.textSecondary} />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </>
+            }
+            renderItem={({ item }) => <TransactionItem transaction={item} />}
+            ListEmptyComponent={
+              <Text style={styles.emptyText}>No transactions yet.</Text>
+            }
+          />
+
+          {/* Floating Plus Button */}
+          <View style={styles.fabContainer}>
+            <TouchableOpacity
+              style={styles.fab}
+              onPress={() => setTransactionModalVisible(true)}
+            >
+              <MaterialIcons name="add" size={32} color={THEME.background} />
+            </TouchableOpacity>
+          </View>
+
+          <AddAccountModal
+            visible={isAccountModalVisible}
+            onClose={() => setAccountModalVisible(false)}
+            onAdd={handleAddAccount}
+          />
+
+          <AddTransactionModal
+            visible={isTransactionModalVisible}
+            onClose={() => setTransactionModalVisible(false)}
+            onAdd={handleAddTransaction}
+            accounts={accounts}
+          />
+        </View>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 }

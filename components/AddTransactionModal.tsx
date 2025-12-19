@@ -1,11 +1,13 @@
 import { Account, THEME, Transaction } from '@/constants/accounts';
 import React, { useState } from 'react';
 import {
+    Keyboard,
     Modal,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
+    TouchableWithoutFeedback,
     View,
 } from 'react-native';
 
@@ -48,72 +50,74 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
 
     return (
         <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
-            <View style={styles.modalOverlay}>
-                <View style={styles.modalContent}>
-                    <Text style={styles.modalTitle}>Add Transaction</Text>
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Add Transaction</Text>
 
-                    <View style={styles.typeContainer}>
-                        <TouchableOpacity
-                            style={[styles.typeButton, type === 'expense' && styles.activeExpense]}
-                            onPress={() => setType('expense')}
-                        >
-                            <Text style={[styles.typeText, type === 'expense' && styles.activeTypeText]}>Expense</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[styles.typeButton, type === 'credit' && styles.activeCredit]}
-                            onPress={() => setType('credit')}
-                        >
-                            <Text style={[styles.typeText, type === 'credit' && styles.activeTypeText]}>Income</Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    <Text style={styles.label}>Amount ($)</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="0.00"
-                        value={amount}
-                        onChangeText={setAmount}
-                        keyboardType="decimal-pad"
-                        placeholderTextColor="#64748b"
-                    />
-
-                    <Text style={styles.label}>Category</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Shopping, Salary, Gaming..."
-                        value={category}
-                        onChangeText={setCategory}
-                        placeholderTextColor="#64748b"
-                    />
-
-                    <Text style={styles.label}>Select Account</Text>
-                    <View style={styles.accountList}>
-                        {accounts.map((acc) => (
+                        <View style={styles.typeContainer}>
                             <TouchableOpacity
-                                key={acc.id}
-                                style={[
-                                    styles.accountItem,
-                                    selectedAccountId === acc.id && { borderColor: THEME.accent },
-                                ]}
-                                onPress={() => setSelectedAccountId(acc.id)}
+                                style={[styles.typeButton, type === 'expense' && styles.activeExpense]}
+                                onPress={() => setType('expense')}
                             >
-                                <Text style={[styles.accountItemText, selectedAccountId === acc.id && { color: THEME.accent }]}>
-                                    {acc.name}
-                                </Text>
+                                <Text style={[styles.typeText, type === 'expense' && styles.activeTypeText]}>Expense</Text>
                             </TouchableOpacity>
-                        ))}
-                    </View>
+                            <TouchableOpacity
+                                style={[styles.typeButton, type === 'credit' && styles.activeCredit]}
+                                onPress={() => setType('credit')}
+                            >
+                                <Text style={[styles.typeText, type === 'credit' && styles.activeTypeText]}>Income</Text>
+                            </TouchableOpacity>
+                        </View>
 
-                    <View style={styles.modalButtons}>
-                        <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={onClose}>
-                            <Text style={styles.cancelText}>Cancel</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={[styles.modalButton, styles.submitButton]} onPress={handleAdd}>
-                            <Text style={styles.submitText}>Add</Text>
-                        </TouchableOpacity>
+                        <Text style={styles.label}>Amount ($)</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="0.00"
+                            value={amount}
+                            onChangeText={setAmount}
+                            keyboardType="decimal-pad"
+                            placeholderTextColor="#64748b"
+                        />
+
+                        <Text style={styles.label}>Category</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Shopping, Salary, Gaming..."
+                            value={category}
+                            onChangeText={setCategory}
+                            placeholderTextColor="#64748b"
+                        />
+
+                        <Text style={styles.label}>Select Account</Text>
+                        <View style={styles.accountList}>
+                            {accounts.map((acc) => (
+                                <TouchableOpacity
+                                    key={acc.id}
+                                    style={[
+                                        styles.accountItem,
+                                        selectedAccountId === acc.id && { borderColor: THEME.accent },
+                                    ]}
+                                    onPress={() => setSelectedAccountId(acc.id)}
+                                >
+                                    <Text style={[styles.accountItemText, selectedAccountId === acc.id && { color: THEME.accent }]}>
+                                        {acc.name}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={onClose}>
+                                <Text style={styles.cancelText}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={[styles.modalButton, styles.submitButton]} onPress={handleAdd}>
+                                <Text style={styles.submitText}>Add</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 </View>
-            </View>
+            </TouchableWithoutFeedback>
         </Modal>
     );
 };
