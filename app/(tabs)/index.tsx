@@ -1,98 +1,333 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { AccountCard } from '@/components/AccountCard';
+import { AddAccountModal } from '@/components/AddAccountModal';
+import { AddTransactionModal } from '@/components/AddTransactionModal';
+import { BalanceCard } from '@/components/BalanceCard';
+import { TransactionItem } from '@/components/TransactionItem';
+import { Account, THEME, Transaction } from '@/constants/accounts';
+import { storage } from '@/constants/storage';
+import { MaterialIcons } from '@expo/vector-icons';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  FlatList,
+  Image,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [isAccountModalVisible, setAccountModalVisible] = useState(false);
+  const [isTransactionModalVisible, setTransactionModalVisible] = useState(false);
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  // Load data on mount
+  useEffect(() => {
+    const initData = async () => {
+      const savedAccounts = await storage.loadAccounts();
+      const savedTransactions = await storage.loadTransactions();
+      setAccounts(savedAccounts);
+      setTransactions(savedTransactions);
+    };
+    initData();
+  }, []);
+
+  const totalBalance = useMemo(() => {
+    const accountBalance = accounts.reduce((sum, acc) => sum + acc.balance, 0);
+    const transactionBalance = transactions.reduce((sum, tx) => {
+      return tx.type === 'credit' ? sum + tx.amount : sum - tx.amount;
+    }, 0);
+    return accountBalance + transactionBalance;
+  }, [accounts, transactions]);
+
+  const monthlySummary = useMemo(() => {
+    return transactions.reduce(
+      (acc, tx) => {
+        if (tx.type === 'credit') acc.earned += tx.amount;
+        else acc.spent += tx.amount;
+        return acc;
+      },
+      { spent: 0, earned: 0 }
+    );
+  }, [transactions]);
+
+  const handleAddAccount = async (newAccount: Account) => {
+    const updated = [...accounts, newAccount];
+    setAccounts(updated);
+    await storage.saveAccounts(updated);
+  };
+
+  const handleAddTransaction = async (newTx: Transaction) => {
+    const updated = [newTx, ...transactions];
+    setTransactions(updated);
+    await storage.saveTransactions(updated);
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" />
+
+      <FlatList
+        data={transactions}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        ListHeaderComponent={
+          <>
+            {/* Header */}
+            <View style={styles.header}>
+              <View>
+                <Text style={styles.brandTitle}>Amanah</Text>
+                <Text style={styles.brandSubtitle}>Manage your wealth</Text>
+              </View>
+              <TouchableOpacity style={styles.avatarBtn}>
+                <Image
+                  source={{ uri: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix' }}
+                  style={styles.avatar}
+                />
+              </TouchableOpacity>
+            </View>
+
+            {/* Balance Card */}
+            <BalanceCard balance={totalBalance} />
+
+            {/* Weekly Summary */}
+            <View style={styles.summarySection}>
+              <Text style={styles.sectionTitle}>Monthly Summary</Text>
+              <View style={styles.summaryCard}>
+                <View style={styles.summaryItem}>
+                  <Text style={styles.summaryLabel}>Spent</Text>
+                  <Text style={[styles.summaryValue, { color: THEME.negative }]}>
+                    -${monthlySummary.spent.toLocaleString()}
+                  </Text>
+                </View>
+                <View style={styles.summaryDivider} />
+                <View style={styles.summaryItem}>
+                  <Text style={styles.summaryLabel}>Earned</Text>
+                  <Text style={[styles.summaryValue, { color: THEME.positive }]}>
+                    +${monthlySummary.earned.toLocaleString()}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Accounts Horizontal List */}
+            <View style={styles.accountsSection}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>My Accounts</Text>
+                <TouchableOpacity onPress={() => setAccountModalVisible(true)}>
+                  <MaterialIcons name="add-circle-outline" size={24} color={THEME.accent} />
+                </TouchableOpacity>
+              </View>
+              <FlatList
+                horizontal
+                data={accounts}
+                keyExtractor={(item) => item.id}
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.accountsList}
+                renderItem={({ item }) => <AccountCard item={item} />}
+                ListEmptyComponent={
+                  <TouchableOpacity style={styles.emptyAccount} onPress={() => setAccountModalVisible(true)}>
+                    <Text style={styles.emptyAccountText}>+ Add Account</Text>
+                  </TouchableOpacity>
+                }
+              />
+            </View>
+
+            {/* Transactions Header */}
+            <View style={styles.transactionSectionHeader}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Recent Transactions</Text>
+                <TouchableOpacity style={styles.filterBtn}>
+                  <Text style={styles.filterText}>All</Text>
+                  <MaterialIcons name="keyboard-arrow-down" size={20} color={THEME.textSecondary} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </>
+        }
+        renderItem={({ item }) => <TransactionItem transaction={item} />}
+        ListEmptyComponent={
+          <Text style={styles.emptyText}>No transactions yet.</Text>
+        }
+      />
+
+      {/* Floating Plus Button */}
+      <View style={styles.fabContainer}>
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() => setTransactionModalVisible(true)}
+        >
+          <MaterialIcons name="add" size={32} color={THEME.background} />
+        </TouchableOpacity>
+      </View>
+
+      <AddAccountModal
+        visible={isAccountModalVisible}
+        onClose={() => setAccountModalVisible(false)}
+        onAdd={handleAddAccount}
+      />
+
+      <AddTransactionModal
+        visible={isTransactionModalVisible}
+        onClose={() => setTransactionModalVisible(false)}
+        onAdd={handleAddTransaction}
+        accounts={accounts}
+      />
+    </SafeAreaView>
   );
 }
 
+
+
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: {
+    flex: 1,
+    backgroundColor: THEME.background,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    marginBottom: 10,
+  },
+  brandTitle: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: THEME.accent,
+    letterSpacing: -0.5,
+  },
+  brandSubtitle: {
+    fontSize: 12,
+    color: THEME.textSecondary,
+    fontWeight: '600',
+    marginTop: -2,
+  },
+  avatarBtn: {
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: THEME.accent,
+  },
+  avatar: {
+    width: '100%',
+    height: '100%',
+  },
+
+  summarySection: {
+    marginTop: 30,
+    paddingHorizontal: 20,
+  },
+  summaryCard: {
+    flexDirection: 'row',
+    backgroundColor: THEME.cardBg,
+    borderRadius: 20,
+    padding: 20,
+    marginTop: 10,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  summaryItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  summaryLabel: {
+    color: THEME.textSecondary,
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    marginBottom: 5,
+  },
+  summaryValue: {
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  summaryDivider: {
+    width: 1,
+    height: '100%',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  accountsSection: {
+    marginTop: 30,
+  },
+  accountsList: {
+    paddingLeft: 20,
+    paddingRight: 10,
+    marginTop: 10,
+    gap: 12,
+  },
+  emptyAccount: {
+    width: 150,
+    height: 80,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: THEME.textSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyAccountText: {
+    color: THEME.textSecondary,
+    fontWeight: '600',
+  },
+  transactionSectionHeader: {
+    marginTop: 30,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 25,
+    marginBottom: 5,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: THEME.text,
+  },
+  filterBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 4,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  filterText: {
+    color: THEME.textSecondary,
+    fontSize: 14,
+    fontWeight: '600',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
+  listContent: {
+    paddingBottom: 100,
+  },
+  emptyText: {
+    textAlign: 'center',
+    color: THEME.textSecondary,
+    marginTop: 30,
+  },
+  fabContainer: {
     position: 'absolute',
+    bottom: 30,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  fab: {
+    width: 65,
+    height: 65,
+    borderRadius: 32.5,
+    backgroundColor: THEME.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: THEME.accent,
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 8,
   },
 });
