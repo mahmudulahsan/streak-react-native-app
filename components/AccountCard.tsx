@@ -6,62 +6,100 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface AccountCardProps {
     item: Account;
+    isSelected?: boolean;
+    onToggleSelection?: () => void;
 }
 
-export const AccountCard: React.FC<AccountCardProps> = ({ item }) => {
+export const AccountCard: React.FC<AccountCardProps> = ({ item, isSelected = true, onToggleSelection }) => {
     return (
-        <Link
-            href={{
-                pathname: "/account/[id]",
-                params: { id: item.id, name: item.name, balance: item.balance }
-            }}
-            asChild
-        >
-            <TouchableOpacity style={styles.accountCard} activeOpacity={0.7}>
-                <View style={[styles.iconCircle, { backgroundColor: item.color }]}>
-                    <MaterialIcons name={item.icon as any} size={24} color="#fff" />
-                </View>
-                <View style={styles.details}>
-                    <Text style={styles.accountName}>{item.name}</Text>
-                    <Text style={styles.accountBalance}>${item.balance.toFixed(2)}</Text>
-                </View>
-                <MaterialIcons name="chevron-right" size={24} color={THEME.textSecondary} />
+        <View style={[styles.cardWrapper, !isSelected && styles.cardDeselected]}>
+            <TouchableOpacity
+                style={[styles.selectionToggle, { backgroundColor: item.color }]}
+                onPress={onToggleSelection}
+                activeOpacity={0.8}
+            >
+                <MaterialIcons name={item.icon as any} size={24} color="#fff" />
+                {isSelected && (
+                    <View style={styles.checkBadge}>
+                        <MaterialIcons name="check" size={10} color={item.color} />
+                    </View>
+                )}
             </TouchableOpacity>
-        </Link>
+
+            <Link
+                href={{
+                    pathname: "/account/[id]",
+                    params: { id: item.id, name: item.name, balance: item.balance }
+                }}
+                asChild
+            >
+                <TouchableOpacity style={styles.cardInfo} activeOpacity={0.7}>
+                    <View style={styles.details}>
+                        <Text style={styles.accountName}>{item.name}</Text>
+                        <Text style={styles.accountBalance}>${item.balance.toFixed(2)}</Text>
+                    </View>
+                    <MaterialIcons name="chevron-right" size={20} color={THEME.textSecondary} />
+                </TouchableOpacity>
+            </Link>
+        </View>
     );
 };
 
 const styles = StyleSheet.create({
-    accountCard: {
+    cardWrapper: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: THEME.cardBg,
-        padding: 16,
+        padding: 12,
         borderRadius: 20,
-        marginBottom: 12,
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.05)',
+        width: 180,
+        marginRight: 12,
     },
-    iconCircle: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
+    cardDeselected: {
+        opacity: 0.5,
+        backgroundColor: 'rgba(255,255,255,0.02)',
+    },
+    selectionToggle: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
         alignItems: 'center',
         justifyContent: 'center',
-        marginRight: 15,
+        marginRight: 10,
+        position: 'relative',
+    },
+    checkBadge: {
+        position: 'absolute',
+        bottom: -2,
+        right: -2,
+        backgroundColor: '#fff',
+        borderRadius: 8,
+        width: 16,
+        height: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(0,0,0,0.1)',
+    },
+    cardInfo: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     details: {
         flex: 1,
     },
     accountName: {
-        fontSize: 18,
+        fontSize: 14,
         fontWeight: '700',
         color: '#fff',
     },
     accountBalance: {
-        fontSize: 14,
+        fontSize: 12,
         color: THEME.accent,
-        fontWeight: '600',
-        marginTop: 2,
+        fontWeight: '700',
+        marginTop: 1,
     },
 });
