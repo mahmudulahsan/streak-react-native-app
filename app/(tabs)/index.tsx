@@ -23,6 +23,7 @@ import {
 export default function HomeScreen() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [selectedAccountIds, setSelectedAccountIds] = useState<string[]>([]);
   const [isAccountModalVisible, setAccountModalVisible] = useState(false);
   const [isTransactionModalVisible, setTransactionModalVisible] = useState(false);
 
@@ -33,33 +34,45 @@ export default function HomeScreen() {
       const savedTransactions = await storage.loadTransactions();
       setAccounts(savedAccounts);
       setTransactions(savedTransactions);
+      // Select all by default
+      setSelectedAccountIds(savedAccounts.map(a => a.id));
     };
     initData();
   }, []);
 
   const totalBalance = useMemo(() => {
-    const accountBalance = accounts.reduce((sum, acc) => sum + acc.balance, 0);
+    const activeAccounts = accounts.filter(a => selectedAccountIds.includes(a.id));
+    const accountBalance = activeAccounts.reduce((sum, acc) => sum + acc.balance, 0);
     const transactionBalance = transactions.reduce((sum, tx) => {
+      if (!selectedAccountIds.includes(tx.accountId)) return sum;
       return tx.type === 'credit' ? sum + tx.amount : sum - tx.amount;
     }, 0);
     return accountBalance + transactionBalance;
-  }, [accounts, transactions]);
+  }, [accounts, transactions, selectedAccountIds]);
 
   const monthlySummary = useMemo(() => {
     return transactions.reduce(
       (acc, tx) => {
+        if (!selectedAccountIds.includes(tx.accountId)) return acc;
         if (tx.type === 'credit') acc.earned += tx.amount;
         else acc.spent += tx.amount;
         return acc;
       },
       { spent: 0, earned: 0 }
     );
-  }, [transactions]);
+  }, [transactions, selectedAccountIds]);
 
   const handleAddAccount = async (newAccount: Account) => {
     const updated = [...accounts, newAccount];
     setAccounts(updated);
+    setSelectedAccountIds(prev => [...prev, newAccount.id]);
     await storage.saveAccounts(updated);
+  };
+
+  const handleToggleAccountSelection = (id: string) => {
+    setSelectedAccountIds(prev =>
+      prev.includes(id) ? prev.filter(aid => aid !== id) : [...prev, id]
+    );
   };
 
   const handleAddTransaction = async (newTx: Transaction) => {
@@ -67,6 +80,8 @@ export default function HomeScreen() {
     setTransactions(updated);
     await storage.saveTransactions(updated);
   };
+
+  const currentMonth = new Intl.DateTimeFormat('en-US', { month: 'long' }).format(new Date());
 
   return (
     <SafeAreaView style={styles.container}>
@@ -99,9 +114,9 @@ export default function HomeScreen() {
                 {/* Balance Card */}
                 <BalanceCard balance={totalBalance} />
 
-                {/* Weekly Summary */}
+                {/* Monthly Summary */}
                 <View style={styles.summarySection}>
-                  <Text style={styles.sectionTitle}>Monthly Summary</Text>
+                  <Text style={styles.sectionTitle}>{currentMonth} Summary</Text>
                   <View style={styles.summaryCard}>
                     <View style={styles.summaryItem}>
                       <Text style={styles.summaryLabel}>Spent</Text>
@@ -132,8 +147,15 @@ export default function HomeScreen() {
                     data={accounts}
                     keyExtractor={(item) => item.id}
                     showsHorizontalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
                     contentContainerStyle={styles.accountsList}
-                    renderItem={({ item }) => <AccountCard item={item} />}
+                    renderItem={({ item }) => (
+                      <AccountCard
+                        item={item}
+                        isSelected={selectedAccountIds.includes(item.id)}
+                        onToggleSelection={() => handleToggleAccountSelection(item.id)}
+                      />
+                    )}
                     ListEmptyComponent={
                       <TouchableOpacity style={styles.emptyAccount} onPress={() => setAccountModalVisible(true)}>
                         <Text style={styles.emptyAccountText}>+ Add Account</Text>
