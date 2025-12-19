@@ -8,9 +8,10 @@ interface AccountCardProps {
     item: Account;
     isSelected?: boolean;
     onToggleSelection?: () => void;
+    symbol?: string;
 }
 
-export const AccountCard: React.FC<AccountCardProps> = ({ item, isSelected = true, onToggleSelection }) => {
+export const AccountCard: React.FC<AccountCardProps> = ({ item, isSelected = true, onToggleSelection, symbol = '$' }) => {
     return (
         <View style={[styles.cardWrapper, !isSelected && styles.cardDeselected]}>
             <TouchableOpacity
@@ -36,7 +37,9 @@ export const AccountCard: React.FC<AccountCardProps> = ({ item, isSelected = tru
                 <TouchableOpacity style={styles.cardInfo} activeOpacity={0.7}>
                     <View style={styles.details}>
                         <Text style={styles.accountName}>{item.name}</Text>
-                        <Text style={styles.accountBalance}>${item.balance.toFixed(2)}</Text>
+                        <Text style={styles.accountBalance}>
+                            {symbol}{item.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </Text>
                     </View>
                     <MaterialIcons name="chevron-right" size={20} color={THEME.textSecondary} />
                 </TouchableOpacity>

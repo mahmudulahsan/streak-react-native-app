@@ -5,9 +5,11 @@ import { StyleSheet, Text, View } from 'react-native';
 
 interface TransactionItemProps {
     transaction: Transaction;
+    accountName?: string;
+    symbol?: string;
 }
 
-export const TransactionItem: React.FC<TransactionItemProps> = ({ transaction }) => {
+export const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, accountName, symbol = '$' }) => {
     const isExpense = transaction.type === 'expense';
 
     return (
@@ -18,11 +20,14 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({ transaction })
                 </View>
                 <View style={styles.details}>
                     <Text style={styles.category}>{transaction.category}</Text>
-                    <Text style={styles.date}>{transaction.date}</Text>
+                    <Text style={styles.date}>
+                        {accountName ? `${accountName} • ` : ''}
+                        {transaction.date}
+                    </Text>
                 </View>
             </View>
             <Text style={[styles.amount, { color: isExpense ? THEME.negative : THEME.positive }]}>
-                {isExpense ? `-$${transaction.amount}` : `+$${transaction.amount}`}
+                {isExpense ? `-${symbol}${transaction.amount.toLocaleString()}` : `+${symbol}${transaction.amount.toLocaleString()}`}
             </Text>
         </View>
     );

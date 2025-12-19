@@ -3,8 +3,29 @@ import { Account, Transaction } from './accounts';
 
 const ACCOUNTS_KEY = '@amanah_accounts';
 const TRANSACTIONS_KEY = '@amanah_transactions';
+const CURRENCY_KEY = '@amanah_currency';
 
 export const storage = {
+    // Save Currency
+    saveCurrency: async (currencyCode: string) => {
+        try {
+            await AsyncStorage.setItem(CURRENCY_KEY, currencyCode);
+        } catch (e) {
+            console.error('Failed to save currency', e);
+        }
+    },
+
+    // Load Currency
+    loadCurrency: async (): Promise<string> => {
+        try {
+            const code = await AsyncStorage.getItem(CURRENCY_KEY);
+            return code || 'USD';
+        } catch (e) {
+            console.error('Failed to load currency', e);
+            return 'USD';
+        }
+    },
+
     // Save Accounts
     saveAccounts: async (accounts: Account[]) => {
         try {

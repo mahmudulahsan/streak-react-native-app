@@ -16,6 +16,7 @@ interface AddTransactionModalProps {
     onClose: () => void;
     onAdd: (transaction: Transaction) => void;
     accounts: Account[];
+    symbol?: string;
 }
 
 export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
@@ -23,6 +24,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
     onClose,
     onAdd,
     accounts,
+    symbol = '$',
 }) => {
     const [amount, setAmount] = useState('');
     const [category, setCategory] = useState('');
@@ -70,7 +72,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                             </TouchableOpacity>
                         </View>
 
-                        <Text style={styles.label}>Amount ($)</Text>
+                        <Text style={styles.label}>Amount ({symbol})</Text>
                         <TextInput
                             style={styles.input}
                             placeholder="0.00"

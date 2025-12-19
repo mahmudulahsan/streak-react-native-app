@@ -1,19 +1,17 @@
 import { BalanceCard } from '@/components/BalanceCard';
 import { TransactionItem } from '@/components/TransactionItem';
-import { THEME, Transaction } from '@/constants/accounts';
+import { CURRENCIES, THEME, Transaction } from '@/constants/accounts';
 import { storage } from '@/constants/storage';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
     FlatList,
-    Keyboard,
     SafeAreaView,
     StatusBar,
     StyleSheet,
     Text,
     TouchableOpacity,
-    TouchableWithoutFeedback,
     View,
 } from 'react-native';
 
@@ -21,13 +19,18 @@ export default function AccountDetailScreen() {
     const { id, name, balance } = useLocalSearchParams();
     const router = useRouter();
     const [transactions, setTransactions] = useState<Transaction[]>([]);
+    const [currencySymbol, setCurrencySymbol] = useState('$');
 
-    // Load account-specific transactions on mount
+    // Load account-specific data on mount
     useEffect(() => {
         const loadAccountData = async () => {
             const allTransactions = await storage.loadTransactions();
             const filtered = allTransactions.filter(tx => tx.accountId === id);
             setTransactions(filtered);
+
+            const savedCurrencyCode = await storage.loadCurrency();
+            const currency = CURRENCIES.find(c => c.code === savedCurrencyCode) || CURRENCIES[0];
+            setCurrencySymbol(currency.symbol);
         };
         loadAccountData();
     }, [id]);
@@ -44,38 +47,44 @@ export default function AccountDetailScreen() {
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="light-content" />
             <Stack.Screen options={{ headerShown: false }} />
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-                <View style={{ flex: 1 }}>
-                    <FlatList
-                        data={transactions}
-                        keyExtractor={(item) => item.id}
-                        renderItem={({ item }) => <TransactionItem transaction={item} />}
-                        showsVerticalScrollIndicator={false}
-                        keyboardShouldPersistTaps="handled"
-                        ListHeaderComponent={
-                            <>
-                                <View style={styles.header}>
-                                    <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-                                        <MaterialIcons name="chevron-left" size={32} color="#fff" />
-                                    </TouchableOpacity>
-                                    <Text style={styles.title}>{name}</Text>
-                                    <View style={{ width: 44 }} />
-                                </View>
-
-                                <BalanceCard balance={currentBalance} label={`${name} Balance`} />
-
-                                <View style={styles.transactionSectionHeader}>
-                                    <Text style={styles.sectionTitle}>Recent Activity</Text>
-                                </View>
-                            </>
-                        }
-                        ListEmptyComponent={
-                            <Text style={styles.emptyText}>No activity for this account.</Text>
-                        }
-                        contentContainerStyle={styles.listContent}
+            <FlatList
+                data={transactions}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                    <TransactionItem
+                        transaction={item}
+                        accountName={name as string}
+                        symbol={currencySymbol}
                     />
-                </View>
-            </TouchableWithoutFeedback>
+                )}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                ListHeaderComponent={
+                    <>
+                        <View style={styles.header}>
+                            <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+                                <MaterialIcons name="chevron-left" size={32} color="#fff" />
+                            </TouchableOpacity>
+                            <Text style={styles.title}>{name}</Text>
+                            <View style={{ width: 44 }} />
+                        </View>
+
+                        <BalanceCard
+                            balance={currentBalance}
+                            label={`${name} Balance`}
+                            symbol={currencySymbol}
+                        />
+
+                        <View style={styles.transactionSectionHeader}>
+                            <Text style={styles.sectionTitle}>Recent Activity</Text>
+                        </View>
+                    </>
+                }
+                ListEmptyComponent={
+                    <Text style={styles.emptyText}>No activity for this account.</Text>
+                }
+                contentContainerStyle={styles.listContent}
+            />
         </SafeAreaView>
     );
 }

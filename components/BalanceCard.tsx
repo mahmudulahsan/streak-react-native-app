@@ -6,13 +6,11 @@ import { StyleSheet, Text, View } from 'react-native';
 interface BalanceCardProps {
     balance: number;
     label?: string;
+    symbol?: string;
 }
 
-export const BalanceCard: React.FC<BalanceCardProps> = ({ balance, label = 'Your Balance' }) => {
-    const formattedBalance = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-    }).format(balance);
+export const BalanceCard: React.FC<BalanceCardProps> = ({ balance, label = 'Your Balance', symbol = '$' }) => {
+    const formattedBalance = `${symbol}${balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
     return (
         <LinearGradient

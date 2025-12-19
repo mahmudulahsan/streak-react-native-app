@@ -32,6 +32,20 @@ export const THEME = {
     negative: '#ffb471', // Matching the yellow/orange in the image for transactions
 };
 
+export interface Currency {
+    code: string;
+    symbol: string;
+    label: string;
+}
+
+export const CURRENCIES: Currency[] = [
+    { code: 'USD', symbol: '$', label: 'US Dollar' },
+    { code: 'BDT', symbol: '৳', label: 'Taka' },
+    { code: 'INR', symbol: '₹', label: 'Rupee' },
+    { code: 'SAR', symbol: '﷼', label: 'Riyal' },
+    { code: 'EUR', symbol: '€', label: 'Euro' },
+];
+
 export interface Transaction {
     id: string;
     accountId: string;
